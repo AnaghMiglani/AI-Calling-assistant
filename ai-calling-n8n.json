@@ -1,0 +1,385 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "18470208-515c-453c-8841-b6be8e921f70/schedule",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -176,
+        -64
+      ],
+      "id": "54059012-b939-429e-8197-4f1394ffcaef",
+      "name": "Webhook",
+      "webhookId": "18470208-515c-453c-8841-b6be8e921f70"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -80,
+        176
+      ],
+      "id": "80eeacb8-02b1-4343-8846-29855c0a79f5",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "zruQFoMZcDkseHFK",
+          "mode": "list",
+          "cachedResultName": "Automatic Time Based Calling",
+          "cachedResultUrl": "/projects/HNOaWfUnYIAmxIfI/datatables/zruQFoMZcDkseHFK"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "number",
+              "displayName": "number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "callType",
+              "displayName": "callType",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "cronExpression",
+              "displayName": "cronExpression",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        928,
+        -64
+      ],
+      "id": "03771cad-5b0f-4210-b003-a5dd525e4905",
+      "name": "Insert row"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1f652906-5e99-4d52-90c8-181f33aab031",
+              "name": "TIME",
+              "value": "={{ $json.body.time }}",
+              "type": "string"
+            },
+            {
+              "id": "8fe405d7-12e1-4559-a42c-43c34730d573",
+              "name": "TYPE",
+              "value": "={{ $json.body.type }}",
+              "type": "string"
+            },
+            {
+              "id": "43e2a3ec-5972-4b38-93e5-0b6fa3d4e37b",
+              "name": "MOBILE",
+              "value": "={{ $json.body.mobile_number }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        48,
+        -64
+      ],
+      "id": "e9fd7a1d-2d04-4386-b204-7dbe3bdd43d4",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "zruQFoMZcDkseHFK",
+          "mode": "list",
+          "cachedResultName": "Automatic Time Based Calling",
+          "cachedResultUrl": "/projects/HNOaWfUnYIAmxIfI/datatables/zruQFoMZcDkseHFK"
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        112,
+        176
+      ],
+      "id": "bd46e106-7c9b-410e-a566-38fd2bf179dc",
+      "name": "Get row(s)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the time from the input\nconst userTime = $input.first().json.TIME; // e.g., 2025-10-15T17:19:00\n\n// Extract the time portion (HH:MM:SS)\nconst timeOnly = userTime.split('T')[1]; // e.g., 17:19:00\n\nreturn [{ json: { timeOnly } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        272,
+        -64
+      ],
+      "id": "055f2157-14bf-4f6e-a996-d7c1d41d4e5a",
+      "name": "Take Time From POST"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract the hours and minutes from the timeOnly (e.g., 17:19:00)\nconst [hour, minute] = $input.first().json.timeOnly.split(':');\n\nreturn [{\n  json: {\n    cronExpression: `${minute} ${hour} * * *`\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        496,
+        -64
+      ],
+      "id": "ff3eaed1-f981-4af4-8fdc-bb9532fdbb4e",
+      "name": "Return Cron Expression"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get current time in IST\nconst now = new Date().toLocaleString(\"en-US\", { timeZone: \"Asia/Kolkata\" });\nconst istDate = new Date(now);\n\nconst currentMinutes = istDate.getMinutes();\nconst currentHours = istDate.getHours();\n\nreturn $items()\n  .filter(item => {\n    const cron = item.json.cronExpression; // e.g., \"33 09 * * *\"\n    const [minStr, hourStr] = cron.split(\" \");\n    const cronMin = Number(minStr);\n    const cronHour = Number(hourStr);\n    return cronMin === currentMinutes && cronHour === currentHours;\n  })\n  .map(item => {\n    return {\n      json: {\n        cronExpression: item.json.cronExpression,\n        callType: item.json.callType,\n        number: item.json.number // optional, if you store the number too\n      }\n    };\n  });\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        336,
+        176
+      ],
+      "id": "355819b1-c9f4-4dc1-821c-0a1a93ca5862",
+      "name": "Check if current time matches cron"
+    },
+    {
+      "parameters": {
+        "language": "python",
+        "pythonCode": "import requests\n\noutput_items = []\n\nfor item in items:\n    callType = item[\"json\"][\"callType\"]\n    number = item[\"json\"][\"number\"]\n\n    payload = {\n        \"callType\": callType,\n        \"number\": number\n    }\n\n    try:\n        response = requests.post(\n            \"http://fastapi:8000/call\",\n            json=payload,\n            timeout=10\n        )\n\n        output_items.append({\n            \"json\": {\n                \"callType\": callType,\n                \"number\": number,\n                \"status_code\": response.status_code,\n                \"response\": response.json()\n            }\n        })\n\n    except Exception as e:\n        output_items.append({\n            \"json\": {\n                \"callType\": callType,\n                \"number\": number,\n                \"error\": str(e)\n            }\n        })\n\nreturn output_items\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        176
+      ],
+      "id": "7e7e22f2-62bc-4881-b955-6b5bf22e1250",
+      "name": "Code in Python (Beta)"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0ebfc1ff-63d9-4a25-bff7-0c58a5712e00",
+              "name": "cronExpression",
+              "value": "={{ $json.cronExpression }}",
+              "type": "string"
+            },
+            {
+              "id": "b930e6f6-98e8-4437-ba27-656a1f1b5a80",
+              "name": "callType",
+              "value": "={{ $('Webhook').item.json.body.type }}",
+              "type": "string"
+            },
+            {
+              "id": "78d44371-cdc9-4c5f-923f-7c644b73e2c4",
+              "name": "number",
+              "value": "={{ $('Webhook').item.json.body.mobile_number }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        704,
+        -64
+      ],
+      "id": "85d53a89-cc25-477b-835e-3398efb1d1bb",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5fa155f5-8c7b-4d2d-a1c7-77ce691c31f8",
+              "name": "callType",
+              "value": "={{ $json.callType }}",
+              "type": "string"
+            },
+            {
+              "id": "54486397-fc4e-4924-8038-06852720c400",
+              "name": "number",
+              "value": "={{ $json.number }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        544,
+        176
+      ],
+      "id": "f2f892dc-4b57-4a8e-a183-d6aef7cfc473",
+      "name": "Edit Fields2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Take Time From POST",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "Check if current time matches cron",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Take Time From POST": {
+      "main": [
+        [
+          {
+            "node": "Return Cron Expression",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Return Cron Expression": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check if current time matches cron": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Insert row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Code in Python (Beta)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5e1a5472-c252-425d-bd69-181b782ea2b3",
+  "meta": {
+    "instanceId": "b2d908b3e29cc3370e03714a8f0edd464fefe67a275577e5e1d7f933c89bb698"
+  },
+  "id": "2xMQ7Mo40OhnhBrw",
+  "tags": []
+}
