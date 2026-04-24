@@ -1,8 +1,8 @@
 import streamlit as st
 from langchain.tools import tool
-from langchain.prompts import PromptTemplate
-from langchain.agents import initialize_agent
-from langchain.llms import OpenAI
+from langchain_core.prompts import PromptTemplate
+from langchain_classic.agents import initialize_agent
+from langchain_openai import ChatOpenAI
 
 import os
 from dotenv import load_dotenv
@@ -43,7 +43,7 @@ prompt = PromptTemplate(
     template=system_prompt + "\nUser: {input}\nAI:"
 )
 
-llm = OpenAI(temperature=0.6)
+llm = ChatOpenAI(temperature=0.6, model_name="gpt-4o-mini")
 tools = [call_sleep_tool, call_wake_tool]
 agent = initialize_agent(tools, llm, agent_type="zero-shot-react-description")
 
