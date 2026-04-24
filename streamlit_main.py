@@ -2,7 +2,8 @@ import streamlit as st
 from langchain.tools import tool
 from langchain_core.prompts import PromptTemplate
 from langchain_classic.agents import initialize_agent
-from langchain_openai import ChatOpenAI
+# from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
 
 import os
 from dotenv import load_dotenv
@@ -28,7 +29,7 @@ def call_wake_tool(number: str) -> str:
     except Exception as e:
         return f"Error: {e}"
 
-system_prompt = """You are an AI agent that can make phone calls to play sleep or wake messages using Twilio. Ask user if you are unsure if you have to make a sleep call or a waking call. You must only ever call one tool per user request."""
+# system_prompt = """You are an AI agent that can make phone calls to play sleep or wake messages using Twilio. Ask user if you are unsure if you have to make a sleep call or a waking call. You must only ever call one tool per user request."""
 system_prompt = """
 You are an AI assistant that can make phone calls using Twilio to play either a sleep message or a wake message to a phone number provided by the user.
 Your job is to:
@@ -43,7 +44,13 @@ prompt = PromptTemplate(
     template=system_prompt + "\nUser: {input}\nAI:"
 )
 
-llm = ChatOpenAI(temperature=0.6, model_name="gpt-4o-mini")
+llm=ChatGroq(
+    model="llama-3.3-70b-versatile",
+    temperature=0.2,
+    max_retries=2,
+    api_key=os.getenv("GROQ_API_KEY"),
+)
+
 tools = [call_sleep_tool, call_wake_tool]
 agent = initialize_agent(tools, llm, agent_type="zero-shot-react-description")
 
