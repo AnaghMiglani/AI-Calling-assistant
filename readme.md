@@ -27,7 +27,10 @@ An AI-powered calling assistant that automates wake-up and sleep reminder calls 
 
 Python, FastAPI, Streamlit, LangChain, OpenAI GPT, Twilio, n8n
 
-## Notes
+<h2>Screenshots</h2>
 
-- Solo project focused on backend automation and AI orchestration
-- Frontend kept minimal and used only for testing
+<img src="assets/recieved_phone.png" width="200" />
+
+<img src="assets/recieved_phone_audio.png" width="200" />
+
+<img src="assets/streamlit.png" width="800" />
